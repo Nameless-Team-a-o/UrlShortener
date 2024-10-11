@@ -12,56 +12,57 @@ public class SnowflakeIdGenerator {
     private long lastTimestamp = -1L; // Last timestamp
 
     // Constants for bit lengths
-    private final long twepoch = 1288834974657L; // Custom epoch
-    private final long sequenceBits = 12L; // 12 bits for sequence number
-    private final long workerIdBits = 10L; // 10 bits for worker ID
+    private static final long TWEPOCH = 1288834974657L; // Custom epoch
+    private static final long SEQUENCE_BITS = 12L; // 12 bits for sequence number
+    private static final long WORKER_ID_BITS = 10L; // 10 bits for worker ID
 
     // Maximum values for the IDs
-    private final long maxWorkerId = ~(-1L << workerIdBits); // Max worker ID (1023)
-    private final long sequenceMask = ~(-1L << sequenceBits); // Max sequence number (4095)
+    private final long maxWorkerId = ~(-1L << WORKER_ID_BITS); // Max worker ID (1023)
+    private final long sequenceMask = ~(-1L << SEQUENCE_BITS); // Max sequence number (4095)
 
-    // Constructor to set the worker ID
     public SnowflakeIdGenerator(@Value("${snowflake.workerId}") long workerId) {
-        if (workerId > maxWorkerId || workerId < 0) {
-            throw new IllegalArgumentException("Worker ID can't be greater than " + maxWorkerId + " or less than 0");
-        }
+        validateWorkerId(workerId);
         this.workerId = workerId;
     }
 
     // Generate the next Snowflake ID
     public synchronized long nextId() {
-        long timestamp = timestamp();
+        long timestamp = currentTimestamp();
 
-        // If the current timestamp is the same as the last timestamp, increment the sequence
         if (timestamp == lastTimestamp) {
-            sequence = (sequence + 1) & sequenceMask; // Wrap the sequence
+            sequence = (sequence + 1) & sequenceMask;
             if (sequence == 0) {
-                // Wait for the next millisecond if the sequence is exhausted
-                timestamp = waitNextMillis(lastTimestamp);
+                timestamp = waitForNextMillis(lastTimestamp);
             }
         } else {
             sequence = 0L; // Reset sequence for a new millisecond
         }
 
-        lastTimestamp = timestamp; // Update the last timestamp
+        lastTimestamp = timestamp; // Update last timestamp
+        return createId(timestamp);
+    }
 
-        // Shift and combine all parts to create the ID
-        return ((timestamp - twepoch) << (workerIdBits + sequenceBits)) // Shift timestamp
-                | (workerId << sequenceBits) // Shift worker ID
+    private long createId(long timestamp) {
+        return ((timestamp - TWEPOCH) << (WORKER_ID_BITS + SEQUENCE_BITS)) // Shift timestamp
+                | (workerId << SEQUENCE_BITS) // Shift worker ID
                 | sequence; // Add sequence number
     }
 
-    // Get the current timestamp in milliseconds
-    private long timestamp() {
-        return Instant.now().toEpochMilli(); // Get current timestamp in milliseconds
+    private long currentTimestamp() {
+        return Instant.now().toEpochMilli(); // Current timestamp in milliseconds
     }
 
-    // Wait for the next millisecond
-    private long waitNextMillis(long lastTimestamp) {
-        long timestamp = timestamp();
+    private long waitForNextMillis(long lastTimestamp) {
+        long timestamp = currentTimestamp();
         while (timestamp <= lastTimestamp) {
-            timestamp = timestamp();
+            timestamp = currentTimestamp();
         }
         return timestamp;
+    }
+
+    private void validateWorkerId(long workerId) {
+        if (workerId < 0 || workerId > maxWorkerId) {
+            throw new IllegalArgumentException("Worker ID must be between 0 and " + maxWorkerId);
+        }
     }
 }
