@@ -45,7 +45,7 @@ public class UrlShortenerController {
     }
 
     private boolean isValidUrl(String url) {
-        // Simple regex for URL validation (consider using a more robust validation method)
+        // Simple regex for URL validation
         String regex = "^(http://|https://|ftp://|ftps://)?([a-z0-9]+[.-]?)+(:[0-9]{1,5})?(/.*)?$";
         return url.matches(regex);
     }
