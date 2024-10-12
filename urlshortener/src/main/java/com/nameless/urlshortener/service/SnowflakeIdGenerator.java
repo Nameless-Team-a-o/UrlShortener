@@ -32,8 +32,8 @@ public class SnowflakeIdGenerator {
     // Constants related to the Snowflake algorithm
 
     // The custom epoch: The base timestamp (in milliseconds) from which the ID's timestamp is derived.
-    // This is the equivalent of November 4, 2010.
-    private static final long TWEPOCH = 1288834974657L;
+    // This is the equivalent of January 1, 2024, in millisecond.
+    private static final long SERVER_START_EPOCH = 1704067200000L; // s
 
     // Number of bits allocated for the sequence.
     // This is a 12-bit value, meaning we can generate 4096 unique IDs in a single millisecond (2^12 = 4096).
@@ -107,8 +107,8 @@ public class SnowflakeIdGenerator {
      * @return A unique 64-bit Snowflake ID.
      */
     private long createId(long timestamp) {
-        // Subtract the custom epoch (TWEPOCH) from the current timestamp, and shift the result left by 22 bits.
-        long timePart = (timestamp - TWEPOCH) << TIMESTAMP_SHIFT;
+        // Subtract the custom epoch (SERVER_START_EPOCH) from the current timestamp, and shift the result left by 22 bits.
+        long timePart = (timestamp - SERVER_START_EPOCH) << TIMESTAMP_SHIFT;
 
         // Shift the worker ID to the left by 12 bits to make room for the sequence.
         long workerPart = workerId << WORKER_ID_SHIFT;
