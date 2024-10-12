@@ -21,4 +21,4 @@ server:
 
 snowflake:
   datacenterId: 1
-  workerId: 1
+  machineId: 1

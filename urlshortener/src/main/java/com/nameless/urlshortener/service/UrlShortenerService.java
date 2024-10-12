@@ -11,10 +11,10 @@ public class UrlShortenerService {
     private final UrlMappingRepository urlMappingRepository;
 
 
-    private final  SnowflakeIdGenerator idGenerator; // Snowflake ID generator
+    private final  SnowflakeGenerator idGenerator; // Snowflake ID generator
 
     public String shortenUrl(String originalUrl) {
-        long id = idGenerator.nextId(); // Generate Snowflake ID
+        long id = idGenerator.generateNextId(); // Generate Snowflake ID
         String shortUrl = convertToBase62(id); // Convert to Base62
 
         UrlMapping mapping = new UrlMapping();

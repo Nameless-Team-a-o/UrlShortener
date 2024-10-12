@@ -19,4 +19,4 @@ server:
   port: 8081
 snowflake:
   datacenterId: 1
-  workerId: 2
+  machineId: 2
